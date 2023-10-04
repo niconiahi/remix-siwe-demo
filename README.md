@@ -1,22 +1,36 @@
-# Welcome to Remix!
+### Expectations
+In this repo you'll learn how to utilize [SIWE](https://docs.login.xyz/general-information/siwe-overview) as an authentication library, in a decentralized fashion
 
-- [Remix Docs](https://remix.run/docs)
+### Demo
+There is currently not a demo because SIWE is built upon Node APIs like `Buffer` and given that I'm running the application on Cloudflare pages, it doesn't currently work. The code is fine though, if deployed to a Node environment. I don't this because I'm moving away from deployment services that run on Node. I assume that SIWE maintainers will, at some point, implement this, because the edge native applications are a real thing and they should address it. As soon as they address it, this demo will be the first to show it
 
-## Development
+### Files to pay attention
+1. [Login route](/app/routes/login.tsx)
+2. [Join route](/app/routes/join.tsx)
+3. [Logout route](/app/routes/logout.tsx)
+4. [User route](/app/routes/user.tsx)
+5. [cookies.server.ts](/app/utils/cookies.server.ts)
+6. [session.server.ts](/app/utils/session.server.ts)
+7. [user.server.ts](/app/models/user.server.ts)
 
-You will be utilizing Wrangler for local development to emulate the Cloudflare runtime. This is already wired up in your package.json as the `dev` script:
+### Links
+- [Quick overview](https://docs.login.xyz/general-information/siwe-overview)
+- [Detailed explanation of SIWE theory](https://docs.login.xyz/general-information/siwe-overview/eip-4361)
 
-```sh
-# start the remix dev server and wrangler
-npm run dev
-```
+### Demos
+- [spruceid/siwe-quickstart/tree/main/03_complete_app](https://github.com/spruceid/siwe-quickstart/tree/main/03_complete_app)
+- [spruceid/siwe-notepad/tree/main](https://github.com/spruceid/siwe-notepad/tree/main)
 
-Open up [http://127.0.0.1:8788](http://127.0.0.1:8788) and you should be ready to go!
+### Instructions
 
-## Deployment
+#### Join
+- Visit the page `/join` to be able to create an user from the wallet you are currently connected
 
-Cloudflare Pages are currently only deployable through their Git provider integrations.
+#### Login
+- Once the user is created, you can visit `/login` and naturally, login into the application
 
-If you don't already have an account, then [create a Cloudflare account here](https://dash.cloudflare.com/sign-up/pages) and after verifying your email address with Cloudflare, go to your dashboard and follow the [Cloudflare Pages deployment guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything).
+#### Logout
+- Once logged in, you can try logging out
 
-Configure the "Build command" should be set to `npm run build`, and the "Build output directory" should be set to `public`.
+#### User
+- Once logged in, you can try visiting the `/user` page which is private. If you are logged out, you won't be able to navigate there. This resembles the many private routes you may need to protect on your application
