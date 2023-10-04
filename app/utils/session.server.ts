@@ -1,90 +1,103 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/cloudflare"
-import invariant from "tiny-invariant"
-import { getUserByAddress } from "~/models/user.server"
+import type { SessionData, SessionStorage } from "@remix-run/cloudflare";
+import { createCookieSessionStorage, redirect } from "@remix-run/cloudflare";
+import { getUserByAddress } from "~/models/user.server";
 
 type User = {
-  address: string
+  address: string;
+};
+
+export function getSessionStorage(sessionSecret: string) {
+  return createCookieSessionStorage({
+    cookie: {
+      name: "__session",
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secrets: [sessionSecret],
+      secure: process.env.NODE_ENV === "production",
+    },
+  });
 }
 
-invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set")
+const USER_SESSION_KEY = "userAddress";
 
-export const sessionStorage = createCookieSessionStorage({
-  cookie: {
-    name: "__session",
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secrets: [process.env.SESSION_SECRET],
-    secure: process.env.NODE_ENV === "production",
-  },
-})
+export async function getSession(
+  request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
+) {
+  const cookie = request.headers.get("Cookie");
 
-const USER_SESSION_KEY = "userAddress"
-
-export async function getSession(request: Request) {
-  const cookie = request.headers.get("Cookie")
-
-  return sessionStorage.getSession(cookie)
+  return sessionStorage.getSession(cookie);
 }
 
 export async function getUserAddress(
   request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
 ): Promise<User["address"] | undefined> {
-  const session = await getSession(request)
-  const userAddress = session.get(USER_SESSION_KEY)
+  const session = await getSession(request, sessionStorage);
+  const userAddress = session.get(USER_SESSION_KEY);
 
-  return userAddress
+  return userAddress;
 }
 
-export async function getUser(request: Request) {
-  const userAddress = await getUserAddress(request)
+export async function getUser(
+  request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
+) {
+  const userAddress = await getUserAddress(request, sessionStorage);
 
-  if (userAddress === undefined) return null
+  if (userAddress === undefined) return null;
 
-  const user = await getUserByAddress(userAddress)
+  const user = await getUserByAddress(userAddress);
 
-  if (user) return user
+  if (user) return user;
 
-  throw await logout(request)
+  throw await logout(request, sessionStorage);
 }
 
 export async function requireUserAddress(
   request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
   redirectTo: string = new URL(request.url).pathname,
 ) {
-  const userAddress = await getUserAddress(request)
+  const userAddress = await getUserAddress(request, sessionStorage);
 
   if (!userAddress) {
-    const searchParams = new URLSearchParams([["redirectTo", redirectTo]])
-    throw redirect(`/login?${searchParams}`)
+    const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
+    throw redirect(`/login?${searchParams}`);
   }
 
-  return userAddress
+  return userAddress;
 }
 
-export async function requireUser(request: Request) {
-  const userAddress = await requireUserAddress(request)
+export async function requireUser(
+  request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
+) {
+  const userAddress = await requireUserAddress(request, sessionStorage);
 
-  const user = await getUserByAddress(userAddress)
+  const user = await getUserByAddress(userAddress);
 
-  if (user) return user
+  if (user) return user;
 
-  throw await logout(request)
+  throw await logout(request, sessionStorage);
 }
 
 export async function createUserSession({
   request,
+  sessionStorage,
   userAddress,
   remember,
   redirectTo,
 }: {
-  request: Request
-  userAddress: string
-  remember: boolean
-  redirectTo: string
+  request: Request;
+  sessionStorage: SessionStorage<SessionData, SessionData>;
+  userAddress: string;
+  remember: boolean;
+  redirectTo: string;
 }) {
-  const session = await getSession(request)
-  session.set(USER_SESSION_KEY, userAddress)
+  const session = await getSession(request, sessionStorage);
+  session.set(USER_SESSION_KEY, userAddress);
 
   return redirect(redirectTo, {
     headers: {
@@ -94,15 +107,18 @@ export async function createUserSession({
           : undefined,
       }),
     },
-  })
+  });
 }
 
-export async function logout(request: Request) {
-  const session = await getSession(request)
+export async function logout(
+  request: Request,
+  sessionStorage: SessionStorage<SessionData, SessionData>,
+) {
+  const session = await getSession(request, sessionStorage);
 
   return redirect("/", {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
     },
-  })
+  });
 }

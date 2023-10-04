@@ -1,4 +1,4 @@
-const DEFAULT_REDIRECT = "/"
+const DEFAULT_REDIRECT = "/";
 
 /**
  * This should be used any time the redirect path is user-provided
@@ -12,12 +12,12 @@ export function safeRedirect(
   defaultRedirect: string = DEFAULT_REDIRECT,
 ) {
   if (!to || typeof to !== "string") {
-    return defaultRedirect
+    return defaultRedirect;
   }
 
   if (!to.startsWith("/") || to.startsWith("//")) {
-    return defaultRedirect
+    return defaultRedirect;
   }
 
-  return to
+  return to;
 }

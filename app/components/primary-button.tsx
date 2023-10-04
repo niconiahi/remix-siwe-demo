@@ -1,4 +1,4 @@
-import type { ReactElement } from "react"
+import type { ReactElement } from "react";
 
 export function PrimaryButton({
   children,
@@ -11,5 +11,5 @@ export function PrimaryButton({
     >
       {children}
     </button>
-  )
+  );
 }

@@ -1,17 +1,20 @@
-import type { LoaderFunctionArgs} from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare"
-import { useLoaderData } from "@remix-run/react"
-import { HomeButton } from "~/components/home-button"
-import { requireUser } from "~/utils/session.server"
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import { HomeButton } from "~/components/home-button";
+import { envSchema } from "~/utils/env.server";
+import { getSessionStorage, requireUser } from "~/utils/session.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const env = envSchema.parse(context.env);
+  const sessionStorage = getSessionStorage(env.SESSION_SECRET);
+  const user = await requireUser(request, sessionStorage);
 
-  return json({ user })
+  return json({ user });
 }
 
 export default function User() {
-  const { user } = useLoaderData<typeof loader>()
+  const { user } = useLoaderData<typeof loader>();
 
   return (
     <main className="flex h-full w-full items-center justify-center space-x-2">
@@ -25,5 +28,5 @@ export default function User() {
         </div>
       </div>
     </main>
-  )
+  );
 }

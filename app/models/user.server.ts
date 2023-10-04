@@ -1,15 +1,17 @@
 type User = {
-  address: string
-}
+  address: string;
+};
 
 export async function createUser(address: User["address"]): Promise<User> {
   return {
-    address
-  }
+    address,
+  };
 }
 
-export async function getUserByAddress(address: User["address"]): Promise<User> {
+export async function getUserByAddress(
+  address: User["address"],
+): Promise<User> {
   return {
-    address
-  }
+    address,
+  };
 }

@@ -1,7 +1,7 @@
-import type { ReactElement } from "react"
-import HouseIcon from "~/icons/house"
-import { PrimaryButton } from "~/components/primary-button"
-import { Link } from "@remix-run/react"
+import type { ReactElement } from "react";
+import HouseIcon from "~/icons/house";
+import { PrimaryButton } from "~/components/primary-button";
+import { Link } from "@remix-run/react";
 
 export function HomeButton({
   children,
@@ -15,5 +15,5 @@ export function HomeButton({
         </PrimaryButton>
       </Link>
     </header>
-  )
+  );
 }

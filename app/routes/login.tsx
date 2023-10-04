@@ -1,24 +1,29 @@
-import { useEffect, useState } from "react"
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare"
-import { redirect , json } from "@remix-run/cloudflare"
-import { Form, useLoaderData } from "@remix-run/react"
-import type { JsonRpcSigner } from "@ethersproject/providers"
-import { Web3Provider } from "@ethersproject/providers"
-import { SiweErrorType, SiweMessage , generateNonce } from "siwe"
-import { createUserSession } from "~/utils/session.server"
-import { safeRedirect } from "~/utils/routing.server"
-import { nonceCookie } from "~/utils/cookies.server"
-import { PrimaryButton } from "~/components/primary-button"
-import { HomeButton } from "~/components/home-button"
-import { getUserByAddress } from "~/models/user.server"
+import { useEffect, useState } from "react";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+} from "@remix-run/cloudflare";
+import { redirect, json } from "@remix-run/cloudflare";
+import { Form, useLoaderData } from "@remix-run/react";
+import type { JsonRpcSigner } from "@ethersproject/providers";
+import { Web3Provider } from "@ethersproject/providers";
+import { SiweErrorType, SiweMessage, generateNonce } from "siwe";
+import { createUserSession, getSessionStorage } from "~/utils/session.server";
+import { safeRedirect } from "~/utils/routing.server";
+import { nonceCookie } from "~/utils/cookies.server";
+import { PrimaryButton } from "~/components/primary-button";
+import { HomeButton } from "~/components/home-button";
+import { getUserByAddress } from "~/models/user.server";
+import { envSchema } from "~/utils/env.server";
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const url = new URL(request.url)
-  const redirectTo = safeRedirect(url.searchParams.get("redirectTo"), "/")
-  const message = formData.get("message")
-  const account = formData.get("account")
-  const signature = formData.get("signature")
+export async function action({ request, context }: ActionFunctionArgs) {
+  const env = envSchema.parse(context.env);
+  const formData = await request.formData();
+  const url = new URL(request.url);
+  const redirectTo = safeRedirect(url.searchParams.get("redirectTo"), "/");
+  const message = formData.get("message");
+  const account = formData.get("account");
+  const signature = formData.get("signature");
 
   if (typeof message !== "string") {
     return json(
@@ -33,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       },
       { status: 400 },
-    )
+    );
   }
 
   if (typeof account !== "string") {
@@ -49,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       },
       { status: 400 },
-    )
+    );
   }
 
   if (typeof signature !== "string") {
@@ -65,16 +70,16 @@ export async function action({ request }: ActionFunctionArgs) {
         },
       },
       { status: 400 },
-    )
+    );
   }
 
   try {
-    const siweMessage = new SiweMessage(message)
+    const siweMessage = new SiweMessage(message);
     // next line does the trick. It will throw if it's invalid
-    await siweMessage.validate(signature)
+    await siweMessage.verify({ signature: siweMessage.prepareMessage() });
 
-    const cookieHeader = request.headers.get("Cookie")
-    const cookie = (await nonceCookie.parse(cookieHeader)) || {}
+    const cookieHeader = request.headers.get("Cookie");
+    const cookie = (await nonceCookie.parse(cookieHeader)) || {};
 
     if (siweMessage.nonce !== cookie.nonce) {
       return json(
@@ -89,7 +94,7 @@ export async function action({ request }: ActionFunctionArgs) {
           },
         },
         { status: 422 },
-      )
+      );
     }
   } catch (error) {
     switch (error) {
@@ -106,7 +111,7 @@ export async function action({ request }: ActionFunctionArgs) {
             },
           },
           { status: 400 },
-        )
+        );
       }
       case SiweErrorType.INVALID_SIGNATURE: {
         return json(
@@ -121,35 +126,37 @@ export async function action({ request }: ActionFunctionArgs) {
             },
           },
           { status: 400 },
-        )
+        );
       }
       default: {
-        break
+        break;
       }
     }
   }
 
-  const prevUser = await getUserByAddress(account)
+  const prevUser = await getUserByAddress(account);
+  const sessionStorage = getSessionStorage(env.SESSION_SECRET);
 
   if (!prevUser) {
-    return redirect("/join")
+    return redirect("/join");
   } else {
     return createUserSession({
       request,
+      sessionStorage,
       userAddress: account,
       remember: true,
       redirectTo,
-    })
+    });
   }
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookieHeader = request.headers.get("Cookie")
-  const cookie = (await nonceCookie.parse(cookieHeader)) || {}
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await nonceCookie.parse(cookieHeader)) || {};
 
   if (!cookie.nonce) {
-    const nextNonce = generateNonce()
-    cookie.nonce = nextNonce
+    const nextNonce = generateNonce();
+    cookie.nonce = nextNonce;
 
     return json(
       {
@@ -160,20 +167,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
           "Set-Cookie": await nonceCookie.serialize(cookie),
         },
       },
-    )
+    );
   }
 
   return json({
     nonce: cookie.nonce,
-  })
+  });
 }
 
 export default function LoginPage() {
-  const { nonce } = useLoaderData<typeof loader>()
-  const { provider, connectProvider } = useProvider()
-  const [account, setAccount] = useState<string | undefined>(undefined)
-  const [message, setMessage] = useState<string | undefined>(undefined)
-  const [signature, setSignature] = useState<string | undefined>(undefined)
+  const { nonce } = useLoaderData<typeof loader>();
+  const { provider, connectProvider } = useProvider();
+  const [account, setAccount] = useState<string | undefined>(undefined);
+  const [message, setMessage] = useState<string | undefined>(undefined);
+  const [signature, setSignature] = useState<string | undefined>(undefined);
 
   return (
     <main className="flex h-full w-full items-center justify-center space-x-2">
@@ -193,13 +200,13 @@ export default function LoginPage() {
           if (!provider) {
             alert(
               "You need to have Metamask connected to create your signature",
-            )
+            );
 
-            return
+            return;
           }
 
-          const account = await getAccount(provider)
-          const signer = getSigner(provider)
+          const account = await getAccount(provider);
+          const signer = getSigner(provider);
 
           const siweMessage = new SiweMessage({
             uri: window.location.origin,
@@ -209,12 +216,12 @@ export default function LoginPage() {
             version: "0.1",
             chainId: 1,
             statement: "Sign in with Ethereum to this application",
-          })
+          });
 
-          const message = siweMessage.prepareMessage()
-          setSignature(await signer.signMessage(message))
-          setMessage(message)
-          setAccount(account)
+          const message = siweMessage.prepareMessage();
+          setSignature(await signer.signMessage(message));
+          setMessage(message);
+          setAccount(account);
         }}
       >
         <span>2</span>
@@ -235,58 +242,58 @@ export default function LoginPage() {
         </PrimaryButton>
       </Form>
     </main>
-  )
+  );
 }
 
 function useProvider(): {
-  provider: Web3Provider | undefined
-  connectProvider: () => void
+  provider: Web3Provider | undefined;
+  connectProvider: () => void;
 } {
-  const [provider, setProvider] = useState<Web3Provider | undefined>(undefined)
+  const [provider, setProvider] = useState<Web3Provider | undefined>(undefined);
 
   async function getProvider() {
     if ((window as any)?.ethereum) {
-      const provider = new Web3Provider((window as any).ethereum)
-      const account = await getAccount(provider)
+      const provider = new Web3Provider((window as any).ethereum);
+      const account = await getAccount(provider);
 
-      if (!account) return setProvider(undefined)
+      if (!account) return setProvider(undefined);
 
-      setProvider(provider)
+      setProvider(provider);
     } else {
-      setProvider(undefined)
+      setProvider(undefined);
     }
   }
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (typeof window === "undefined") return;
 
-    getProvider()
-  }, [])
+    getProvider();
+  }, []);
 
   function connectProvider() {
     new Web3Provider((window as any).ethereum)
       .send("eth_requestAccounts", [])
       .then(() => {
-        if (provider) return
+        if (provider) return;
 
-        getProvider()
+        getProvider();
       })
       .catch((error) => {
         if (error.code === -32002) {
           alert(
             "You have already connected Metamask to the application. Click on the Metamask extension and type your password",
-          )
+          );
         }
-      })
+      });
   }
 
-  return { provider, connectProvider }
+  return { provider, connectProvider };
 }
 
 async function getAccount(provider: Web3Provider): Promise<string> {
-  return provider.send("eth_accounts", []).then((accounts) => accounts[0])
+  return provider.send("eth_accounts", []).then((accounts) => accounts[0]);
 }
 
 function getSigner(provider: Web3Provider): JsonRpcSigner {
-  return provider.getSigner()
+  return provider.getSigner();
 }
