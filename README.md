@@ -5,10 +5,10 @@ In this repo you'll learn how to utilize [SIWE](https://docs.login.xyz/general-i
 There is currently not a demo because SIWE is built upon Node APIs like `Buffer` and given that I'm running the application on Cloudflare pages, it doesn't currently work. The code is fine though, if deployed to a Node environment. I don't this because I'm moving away from deployment services that run on Node. I assume that SIWE maintainers will, at some point, implement this, because the edge native applications are a real thing and they should address it. As soon as they address it, this demo will be the first to show it
 
 ### Files to pay attention
-1. [Login route](/app/routes/login.tsx)
-2. [Join route](/app/routes/join.tsx)
-3. [Logout route](/app/routes/logout.tsx)
-4. [User route](/app/routes/user.tsx)
+1. [login.tsx](/app/routes/login.tsx)
+2. [join.tsx](/app/routes/join.tsx)
+3. [logout.tsx](/app/routes/logout.tsx)
+4. [user.tsx](/app/routes/user.tsx)
 5. [cookies.server.ts](/app/utils/cookies.server.ts)
 6. [session.server.ts](/app/utils/session.server.ts)
 7. [user.server.ts](/app/models/user.server.ts)
