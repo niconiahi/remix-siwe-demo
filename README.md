@@ -2,7 +2,7 @@
 In this repo you'll learn how to utilize [SIWE](https://docs.login.xyz/general-information/siwe-overview) as an authentication library, in a decentralized fashion
 
 ### Demo
-There is currently not a demo because SIWE is built upon Node APIs like `Buffer` and given that I'm running the application on Cloudflare pages, it doesn't currently work. The code is fine though, if deployed to a Node environment. I don't this because I'm moving away from deployment services that run on Node. I assume that SIWE maintainers will, at some point, implement this, because the edge native applications are a real thing and they should address it. As soon as they address it, this demo will be the first to show it
+Here is a link to it: [Demo](https://remix-siwe-demo.pages.dev/)
 
 ### Files to pay attention
 1. [login.tsx](/app/routes/login.tsx)
