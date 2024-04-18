@@ -75,7 +75,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const siweMessage = new SiweMessage(message)
     // next line does the trick. It will throw if it's invalid
-    await siweMessage.validate(signature)
+    await siweMessage.verify({ signature })
 
     const cookieHeader = request.headers.get("Cookie")
     const cookie = (await nonceCookie.parse(cookieHeader)) || {}
