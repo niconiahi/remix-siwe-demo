@@ -1,35 +1,36 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare"
+import { json } from "@remix-run/cloudflare"
+import { Form, Link, useLoaderData } from "@remix-run/react"
+import { PrimaryButton } from "~/components/primary-button"
+import { getSessionStorage, getUserAddress } from "~/utils/session.server"
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    {
-      name: "description",
-      content: "Welcome to Remix! Using Vite and Cloudflare!",
-    },
-  ];
-};
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const sessionStorage = getSessionStorage(context)
+  const userAddress = await getUserAddress(request, sessionStorage)
+  const isLoggedIn = Boolean(userAddress)
 
-export default function Index() {
+  return json({ isLoggedIn })
+}
+
+export default function () {
+  const { isLoggedIn } = useLoaderData<typeof loader>()
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix (with Vite and Cloudflare)</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://developers.cloudflare.com/pages/framework-guides/deploy-a-remix-site/"
-            rel="noreferrer"
-          >
-            Cloudflare Pages Docs - Remix guide
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
+    <div className="flex h-full w-full items-center justify-center space-x-2">
+      <Link to="login">
+        <PrimaryButton disabled={isLoggedIn}>Login</PrimaryButton>
+      </Link>
+      <Link to="join">
+        <PrimaryButton disabled={isLoggedIn}>Join</PrimaryButton>
+      </Link>
+      <Form action="/logout" method="post">
+        <PrimaryButton type="submit" disabled={!isLoggedIn}>
+          Logout
+        </PrimaryButton>
+      </Form>
+      <Link to="user">
+        <PrimaryButton type="submit">User</PrimaryButton>
+      </Link>
     </div>
-  );
+  )
 }

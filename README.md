@@ -29,7 +29,7 @@ npm run start
 
 ## Deployment
 
-> [!WARNING]  
+> [!WARNING]
 > Cloudflare does _not_ use `wrangler.toml` to configure deployment bindings.
 > You **MUST** [configure deployment bindings manually in the Cloudflare dashboard][bindings].
 
