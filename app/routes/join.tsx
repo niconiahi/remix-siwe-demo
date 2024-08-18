@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react"
+import type { JsonRpcSigner } from "@ethersproject/providers"
+import { Web3Provider } from "@ethersproject/providers"
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
 } from "@remix-run/cloudflare"
-
 import { json } from "@remix-run/cloudflare"
 import { Form, useLoaderData } from "@remix-run/react"
-import type { JsonRpcSigner } from "@ethersproject/providers"
-import { Web3Provider } from "@ethersproject/providers"
+import { useEffect, useState } from "react"
 import { SiweErrorType, SiweMessage, generateNonce } from "siwe"
-import { createUser, getUserByAddress } from "~/models/user.server"
-import { createUserSession, getSessionStorage } from "~/utils/session.server"
-import { safeRedirect } from "~/utils/routing.server"
-import { nonceCookie } from "~/utils/cookies.server"
-import { PrimaryButton } from "~/components/primary-button"
+
 import { HomeButton } from "~/components/home-button"
+import { PrimaryButton } from "~/components/primary-button"
+import { createUser, getUserByAddress } from "~/models/user.server"
+import { nonceCookie } from "~/utils/cookies.server"
+import { safeRedirect } from "~/utils/routing.server"
+import { createUserSession, getSessionStorage } from "~/utils/session.server"
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData()
@@ -95,8 +95,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { status: 422 },
       )
     }
-  }
-  catch (error) {
+  } catch (error) {
     switch (error) {
       case SiweErrorType.EXPIRED_MESSAGE: {
         return json(
@@ -147,8 +146,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       remember: true,
       redirectTo,
     })
-  }
-  else {
+  } else {
     return createUserSession({
       request,
       sessionStorage,
@@ -266,19 +264,20 @@ function useProvider(): {
       const provider = new Web3Provider((window as any).ethereum)
       const account = await getAccount(provider)
 
-      if (!account)
+      if (!account) {
         return setProvider(undefined)
+      }
 
       setProvider(provider)
-    }
-    else {
+    } else {
       setProvider(undefined)
     }
   }
 
   useEffect(() => {
-    if (typeof window === "undefined")
+    if (typeof window === "undefined") {
       return
+    }
 
     getProvider()
   }, [])
@@ -287,8 +286,9 @@ function useProvider(): {
     new Web3Provider((window as any).ethereum)
       .send("eth_requestAccounts", [])
       .then(() => {
-        if (provider)
+        if (provider) {
           return
+        }
 
         getProvider()
       })

@@ -1,10 +1,10 @@
-import type { ReactElement } from "react"
 import { Link } from "@remix-run/react"
-import HouseIcon from "~/icons/house"
+import type { ReactElement } from "react"
+
 import { PrimaryButton } from "~/components/primary-button"
+import HouseIcon from "~/icons/house"
 
 export function HomeButton({
-  children,
   ...buttonProps
 }: { children: ReactElement | string } | JSX.IntrinsicElements["button"]) {
   return (

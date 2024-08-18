@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
+
 import globalStyles from "~/styles/global.css?url"
 import tailwindStyles from "~/styles/tailwind.css?url"
 

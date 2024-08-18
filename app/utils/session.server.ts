@@ -1,5 +1,6 @@
 import type { AppLoadContext, SessionData, SessionStorage } from "@remix-run/cloudflare"
 import { createCookieSessionStorage, redirect } from "@remix-run/cloudflare"
+
 import { getUserByAddress } from "~/models/user.server"
 import { getEnv } from "~/utils/env.server"
 
@@ -48,13 +49,15 @@ export async function getUser(
 ) {
   const userAddress = await getUserAddress(request, sessionStorage)
 
-  if (userAddress === undefined)
+  if (userAddress === undefined) {
     return null
+  }
 
   const user = await getUserByAddress(userAddress)
 
-  if (user)
+  if (user) {
     return user
+  }
 
   throw await logout(request, sessionStorage)
 }
@@ -82,8 +85,9 @@ export async function requireUser(
 
   const user = await getUserByAddress(userAddress)
 
-  if (user)
+  if (user) {
     return user
+  }
 
   throw await logout(request, sessionStorage)
 }
